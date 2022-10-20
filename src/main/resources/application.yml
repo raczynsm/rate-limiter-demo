@@ -1,0 +1,12 @@
+rate-limiting:
+  endpoints:
+    ping:
+      limit: 3
+      ttl: PT10S
+    pong:
+      limit: 3
+      ttl: PT60S
+custom:
+  enabled: false
+library:
+  enabled: true
