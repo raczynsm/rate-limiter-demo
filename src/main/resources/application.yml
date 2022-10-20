@@ -1,12 +1,39 @@
-rate-limiting:
-  endpoints:
-    ping:
-      limit: 3
-      ttl: PT10S
-    pong:
-      limit: 3
-      ttl: PT60S
-custom:
-  enabled: false
-library:
+spring:
+  cache:
+    type: caffeine
+    cache-names:
+      - buckets
+      - buckets2
+    caffeine:
+      spec: maximumSize=100000,expireAfterAccess=3600s
+
+bucket4j:
   enabled: true
+  filters: # each config entry creates one servlet filter or other filter
+    - cache-name: buckets # create new servlet filter with bucket4j configuration
+      metrics:
+        tags:
+          - key: IP
+            expression: getRemoteAddr()
+            types: REJECTED_COUNTER # for data privacy reasons the IP should only be collected on bucket rejections
+      url: /ping
+      rate-limits:
+        - expression: getRemoteAddr() # IP based filter
+          bandwidths: # maximum of 5 requests within 10 seconds
+            - capacity: 3
+              time: 10
+              unit: seconds
+    - cache-name: buckets2
+      url: /pong
+      rate-limits:
+        - expression: getRemoteAddr() # IP based filter
+          bandwidths: # maximum of 5 requests within 10 seconds
+            - capacity: 100
+              time: 10
+              unit: seconds
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info, health, metrics
