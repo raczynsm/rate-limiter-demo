@@ -1,11 +1,11 @@
 spring:
   cache:
-    type: caffeine
-    cache-names:
-      - buckets
-      - buckets2
-    caffeine:
-      spec: maximumSize=100000,expireAfterAccess=3600s
+    type: redis
+#    cache-names:
+#      - buckets
+#      - buckets2
+#    caffeine:
+#      spec: maximumSize=100000,expireAfterAccess=3600s
 
 bucket4j:
   enabled: true
@@ -18,11 +18,11 @@ bucket4j:
             types: REJECTED_COUNTER # for data privacy reasons the IP should only be collected on bucket rejections
       url: /ping
       rate-limits:
-        - expression: getRemoteAddr() # IP based filter
+        - expression: getHeader('X-api-key') # IP based filter
           bandwidths: # maximum of 5 requests within 10 seconds
-            - capacity: 3
-              time: 10
-              unit: seconds
+            - capacity: 100
+              time: 1
+              unit: hours
     - cache-name: buckets2
       url: /pong
       rate-limits:

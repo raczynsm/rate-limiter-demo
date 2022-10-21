@@ -89,6 +89,32 @@ ab -n 10000 -c 10 localhost:8080/ping
 
 ![img.png](img.png)
 
+## Memory
+
+To check memory usage of both approaches I use JProfiler tool and change rate limiting key from IP to header
+`X-api-key`. Test steps:
+1. The application was run with JProfiler 
+2. To generate a traffic below script was run
+```
+while [ true ] ; do curl -H "X-api-key: `uuidgen`" localhost:8080/ping -i;done
+```
+Each `X-api-key` is random so we can simulate in this way unique requests.
+3. To simulate DoS attack below command was run
+```
+for i in {1..10000} ; do curl -i -H "X-api-key: 321D4DF5-13BD-4912-97AF-497239534C62" localhost:8080/ping -sS |grep HTTP; done
+```
+### Application memory usage for rate limiting with Caffeine (max cache size: 100000)
+
+![img_6.png](img_6.png)
+
+### Application memory usage for rate limiting with Redis
+
+![img_5.png](img_5.png)
+
+Results from `docker stats redis` after 40 minutes generating random uuids
+
+![img_7.png](img_7.png)
+
 ## How can we enable this feature
 
 We can simply define if rate limiting feature should be enabled or disabled for
